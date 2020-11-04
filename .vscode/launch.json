@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET Core Launch (remote console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "/root/dotnet/dotnet",
+            "args": ["IOT.dll"],
+            "cwd": "/root/IOT/",
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "pipeTransport": {
+                "pipeCwd": "${workspaceFolder}",
+                "pipeProgram": "C:\\PLINK.EXE",
+                "pipeArgs": [
+                    "-pw",
+                    "menshikov",
+                    "root@orangepi4"
+                ],
+                "debuggerPath": "/root/vsdbg/vsdbg"
+            }
+        }
+    ]
+}
