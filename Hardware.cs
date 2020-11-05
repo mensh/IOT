@@ -13,7 +13,7 @@ namespace IOT
         public const int CS_CAN = 150;
         public const int Int_CAN = 54;
         public const int BtrSpi = 1000000;
-       
+
         public static SpiDevice SPI;
         public static GpioController controller;
         readonly static AsyncLock mutex = new AsyncLock();
@@ -38,7 +38,7 @@ namespace IOT
             }
         }
 
-       
+
         private static void CAN_Interrupt(object sender, PinValueChangedEventArgs pinValueChangedEventArgs)
         {
             //throw new NotImplementedException();
@@ -52,37 +52,34 @@ namespace IOT
         {
             using (await mutex.LockAsync())
             {
-            if (datawrite.Length == 1 && (dataread==null || dataread.Length==0 ))
-            {
-                controller.Write(CS_PIN, PinValue.Low);
-                SPI.WriteByte(datawrite[0]);
-                controller.Write(CS_PIN, PinValue.High);
+                if (datawrite.Length == 1 && (dataread == null || dataread.Length == 0))
+                {
+                    controller.Write(CS_PIN, PinValue.Low);
+                    SPI.WriteByte(datawrite[0]);
+                    controller.Write(CS_PIN, PinValue.High);
+                }
+                else if (datawrite.Length == 1 && dataread.Length == 1)
+                {
+                    controller.Write(CS_PIN, PinValue.Low);
+                    SPI.WriteByte(datawrite[0]);
+                    dataread[0] = SPI.ReadByte();
+                    controller.Write(CS_PIN, PinValue.High);
+                }
+                else if (datawrite.Length > 1 && (dataread == null || dataread.Length == 0))
+                {
+                    controller.Write(CS_PIN, PinValue.Low);
+                    SPI.Write(datawrite);
+                    controller.Write(CS_PIN, PinValue.High);
+                }
+                else
+                {
+                    controller.Write(CS_PIN, PinValue.Low);
+                    SPI.Write(datawrite);
+                    SPI.Read(dataread);
+                    controller.Write(CS_PIN, PinValue.High);
+                }
             }
-            else if (datawrite.Length == 1 && dataread.Length==1)
-            {
-                controller.Write(CS_PIN, PinValue.Low);
-                SPI.WriteByte(datawrite[0]);
-                dataread[0] = SPI.ReadByte();
-                controller.Write(CS_PIN, PinValue.High);
-            }
-            else if (datawrite.Length>1 && (dataread==null || dataread.Length==0))
-            {
-                controller.Write(CS_PIN, PinValue.Low);
-                SPI.Write(datawrite);
-                controller.Write(CS_PIN, PinValue.High);
-            }
-            else
-            {
-                controller.Write(CS_PIN, PinValue.Low);
-                SPI.Write(datawrite);
-                SPI.Read(dataread);
-                controller.Write(CS_PIN, PinValue.High);
-            }
-            }
-              
+
         }
-
-
-       
     }
 }
