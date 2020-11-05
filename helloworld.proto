@@ -1,0 +1,71 @@
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+option csharp_namespace = "ServerCore";
+package ServerForecast;
+
+// The greeting service definition.
+service ServerForecast {
+	// Sends a greeting
+	rpc SayHello (ConfigRequest) returns (ConfigReply) {}
+	rpc RXStream (RXRequest) returns (stream RXReply) {}
+	rpc TXStream (TXRequest) returns (TXReply) {}
+}
+
+
+
+message RXRequest
+{
+	string id = 1;
+}
+
+message RXReply {
+	uint32 message = 1;
+	google.protobuf.Timestamp time = 2;
+}
+
+
+message TXRequest {
+	string name = 1;
+	uint32 address = 2;
+	uint32 channel = 3;
+	string id = 4;
+	uint32 freq = 5;
+	bool enable = 6;
+	uint32 low = 7;
+	uint32 hi = 8;
+	uint32 sup = 9;
+	uint32 numberpacket = 10;
+	bool removeitem = 11;
+}
+
+message TXReply {
+	string message = 1;
+}
+
+
+message ConfigRequest
+{
+	string TXSpeed=1;
+	string RXSpeed=2;
+	bool ClearTX=3;
+    string hello=4;
+    string Id = 5;
+}
+
+message ConfigReply {
+	string message = 1;
+}

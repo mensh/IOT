@@ -1,41 +1,45 @@
-﻿using System;
+﻿using Google.Protobuf.WellKnownTypes;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.Hosting;
+using System;
 using System.Device.Gpio;
 using System.Device.Spi;
+using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace IOT
 {
     class Program
     {
 
-        private static MCP2515 CANHandler;
+
 
         static async System.Threading.Tasks.Task Main(string[] args)
         {
-            Hardware.HardwareInit();
-            await Holt.HoltConfigure();
-            await InitCanAsync();
-            Console.WriteLine("Hello World!");
+
             // turn LED on and off
-            while (true)
-            {      
-                Thread.Sleep(1000);
-            }
+            CreateHostBuilder(args).Build().Run();
 
 
         }
 
-        private static async System.Threading.Tasks.Task<bool> InitCanAsync()
-        {
-            CANHandler = new MCP2515();
-            if (await CANHandler.InitCANAsync(MCP2515.enBaudRate.CAN_1000KBPS) == false)
-            {
-                Console.WriteLine("InitCanFail");
-                return false;
-            }
-            // Set to normal operation mode.
-            await CANHandler.SetCANNormalModeAsync();
-            return true;
-        }
+
+        // Additional configuration is required to successfully run gRPC on macOS.
+        // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.ConfigureKestrel(serverOptions =>
+                    {
+                        serverOptions.Listen(IPAddress.Any, 5001, options => options.Protocols = HttpProtocols.Http2);
+
+
+                    });
+                    webBuilder.UseStartup<Startup>();
+                });
+
     }
 }

@@ -12,6 +12,7 @@ namespace IOT
         public const int CS_HOLT = 42;
         public const int CS_CAN = 150;
         public const int Int_CAN = 54;
+        public const int RED_LED = 33;
         public const int BtrSpi = 1000000;
 
         public static SpiDevice SPI;
@@ -24,6 +25,7 @@ namespace IOT
                 controller = new GpioController();
                 controller.OpenPin(CS_HOLT, PinMode.Output);
                 controller.OpenPin(CS_CAN, PinMode.Output);
+                controller.OpenPin(RED_LED, PinMode.Output);
                 controller.OpenPin(Int_CAN, PinMode.Input);
                 controller.RegisterCallbackForPinValueChangedEvent(Int_CAN, PinEventTypes.Falling, CAN_Interrupt);
                 var settings = new SpiConnectionSettings(1, 0);
@@ -38,6 +40,12 @@ namespace IOT
             }
         }
 
+        public static void RedLed(PinValue pinValue)
+        {
+            controller.Write(RED_LED, pinValue);
+        }
+
+      
 
         private static void CAN_Interrupt(object sender, PinValueChangedEventArgs pinValueChangedEventArgs)
         {
