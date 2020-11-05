@@ -85,6 +85,7 @@ namespace IOT
         private const byte TXRTR = 7;
         private const byte TXB0D0 = 0x36;
         private const byte RXB0CTRL = 0x60;
+        private const byte RXB1CTRL = 0x60;
         private const byte RXM1 = 6;
         private const byte RXM0 = 5;
         private const byte RXRTR = 3;
@@ -95,6 +96,15 @@ namespace IOT
         private const byte RXB0EID0 = 0x64;
         private const byte RXB0DLC = 0x65;
         private const byte RXB0D0 = 0x66;
+
+
+
+        private const byte    RXB1SIDH = 0x71;
+        private const byte    RXB1SIDL = 0x72;
+        private const byte    RXB1EID8 = 0x73;
+        private const byte    RXB1EID0 = 0x74;
+         private const byte   RXB1DLC  = 0x75;
+         private const byte   RXB1D1 = 0x76;
         //-------------------------------------
         #endregion REGISTERS
         //-------------------------------------
@@ -396,6 +406,18 @@ namespace IOT
             return outData[0];
         }
 
+        private async System.Threading.Tasks.Task<byte> ReadStatus()
+        {
+            byte[] CmdBuffer = new byte[] { READ_STATUS };
+            byte[] outData = new byte[1];
+
+
+            await Hardware.SPIWork(CmdBuffer, outData, Hardware.CS_CAN);
+
+            return outData[0];
+        }
+
+
         /// <summary>Writes a bit to a register.</summary>
         /// <param name="registerAddress">The address of the register that supports bit writing.</param>
         /// <param name="bitNumber">The zero index based of the bit to write.</param>
@@ -523,25 +545,32 @@ namespace IOT
         /// <param name="msg">The CAN message that will contain the retrived message.</param>
         /// <param name="timeout">The time to wait if a message become available.</param>
         /// <returns>True if a message was received.</returns>
-        public async System.Threading.Tasks.Task<bool> ReceiveAsync(CANMSG msg, int timeout)
+        public async System.Threading.Tasks.Task<bool> ReceiveAsync(CANMSG msg)
         {
             bool gotMessage = false;
+            bool gotMessage1 = false;
             byte val;
-            msg = new CANMSG();
+            //msg = new CANMSG();
 
-            TimeSpan startTime = DateTime.Now.TimeOfDay;
-            TimeSpan endTime = startTime.Add(new TimeSpan(0, 0, 0, 0, timeout));
-
+          
             gotMessage = false;
             // while (DateTime.Now.TimeOfDay < endTime)
             // {
-            val = await ReadRegisterAsync(CANINTF);
+            val = await ReadStatus();
             //If we have a message available, read it
             if ((val & RX0IF_MASK) == RX0IF_MASK)
             {
                 gotMessage = true;
                 //break;
             }
+            else if ((val & RX1IF_MASK) == RX1IF_MASK)
+            {
+                gotMessage1 = true;
+                //break;
+            }
+
+
+    
             //  }
 
             if (gotMessage)
@@ -588,6 +617,48 @@ namespace IOT
             }
             else
             {
+                if (gotMessage1)
+                {
+                     val = await ReadRegisterAsync(RXB0CTRL);
+                    msg.IsRemote = ((val & 0x04) == 0x04) ? true : false;
+
+                    //Address received from
+                    int adddresVal = 0;
+                    val = await ReadRegisterAsync(RXB1SIDH);
+                    adddresVal |= (val << 3);
+                    val = await ReadRegisterAsync(RXB1SIDL);
+                    adddresVal |= (val >> 5);
+
+                    bool isExtended = ((val & EXIDE_MASK) == EXIDE_MASK) ? true : false;
+                    uint adddresExtVal = 0;
+                    if (isExtended)
+                    {
+                        adddresExtVal = (uint)((val & 0x03) << 16);
+                        val = await ReadRegisterAsync(RXB1EID8);
+                        adddresExtVal |= (uint)(val << 8);
+                        val = await ReadRegisterAsync(RXB1EID0);
+                        adddresExtVal |= val;
+
+                        adddresVal = (int)((adddresVal << 18) | adddresExtVal);
+                    }
+                    msg.CANID = (uint)adddresVal;
+
+                    //Read data bytes
+                    val = await ReadRegisterAsync(RXB1DLC);
+                    int dataLen = (val & 0xf);
+
+                    byte[] CmdBuffer = new byte[] { READ, RXB1D1 };
+                    msg.data = new byte[dataLen];
+
+
+                    await Hardware.SPIWork(CmdBuffer, msg.data, Hardware.CS_CAN);
+
+
+
+
+                    //And clear read interrupt
+                    await WriteRegisterBitAsync(CANINTF, RX1IF, 0);
+                }
             }
             return gotMessage;
         }
@@ -612,8 +683,9 @@ namespace IOT
 
             // Set RX buffer control to turn filters OFF and receive any message.
             await WriteRegisterAsync(RXB0CTRL, 0x60);
+            await WriteRegisterAsync(RXB1CTRL, 0x60);
             await WriteRegisterBitAsync(CANINTE, RX0IE, 1); //Enable INT RX
-
+            await WriteRegisterBitAsync(CANINTE, RX1IE, 1); //Enable INT RX
         }
     }
 }

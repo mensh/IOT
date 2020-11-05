@@ -1,12 +1,13 @@
 ﻿using Grpc.Core;
-using ServerCore;
+using IOT;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static IOT.MCP2515;
 
-namespace IOT
+namespace IOT.Services
 {
     public class ServerService : ServerForecast.ServerForecastBase
     {
@@ -15,14 +16,54 @@ namespace IOT
 
         private readonly ArincRXQueue _messageQueueRepository;
         private readonly ArincTXQueue _txdict;
-      
-        public ServerService(ArincRXQueue messageQueueRepository, ArincTXQueue tXDict)
+        private CANTXQueue _CANTXQueue;
+        private CANRXQueue _CANRXQueue;
+
+        public ServerService(ArincRXQueue messageQueueRepository, ArincTXQueue tXDict, CANTXQueue CANTXQueue, CANRXQueue CANRXQueue)
         {
             _messageQueueRepository = messageQueueRepository;
             _txdict = tXDict;
-          
+            _CANTXQueue = CANTXQueue;
+            _CANRXQueue = CANRXQueue;
         }
 
+
+        public override async Task RXCANStream(RXRequest request, IServerStreamWriter<CANmsg> responseStream, ServerCallContext context)
+        {
+            var id = request.Id;
+            var queue = new ConcurrentQueue<CANMSG>();
+            while (_CANRXQueue.AddQueueToCollection(queue, id) == false)
+            {
+                await Task.Delay(1);
+            }
+
+            while (!context.CancellationToken.IsCancellationRequested)
+            {
+                if (queue.Count > 1)
+                {
+                    if (queue.TryDequeue(out var messageRx))
+                    {
+
+                        if (messageRx == null) continue;
+                        await responseStream.WriteAsync(new CANmsg()
+                        {
+                            CANID = messageRx.CANID,
+                            DataLength = (uint)messageRx.DataLength,
+                            IsExtended = messageRx.IsExtended,
+                            IsRemote = messageRx.IsRemote,
+                            Data = { Google.Protobuf.ByteString.CopyFrom(messageRx.data) }
+                        });
+                    }
+                }
+                else
+                {
+                    await Task.Yield();
+                }
+
+            }
+
+            await DisconnectRxStream(id);
+        }
 
         public override async Task RXStream(RXRequest request, IServerStreamWriter<RXReply> responseStream, ServerCallContext context)
         {

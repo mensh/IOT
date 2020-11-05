@@ -16,7 +16,7 @@ namespace IOT
 
 
 
-        static async System.Threading.Tasks.Task Main(string[] args)
+        static void Main(string[] args)
         {
 
             // turn LED on and off

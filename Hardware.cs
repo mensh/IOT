@@ -9,11 +9,13 @@ namespace IOT
 {
     public class Hardware
     {
+        public delegate Task _ReadMessage();
+        public static _ReadMessage ReadMessage;
         public const int CS_HOLT = 42;
         public const int CS_CAN = 150;
-        public const int Int_CAN = 54;
+        public const int Int_CAN = 149;
         public const int RED_LED = 33;
-        public const int BtrSpi = 1000000;
+        public const int BtrSpi = 3000000;
 
         public static SpiDevice SPI;
         public static GpioController controller;
@@ -50,6 +52,7 @@ namespace IOT
         private static void CAN_Interrupt(object sender, PinValueChangedEventArgs pinValueChangedEventArgs)
         {
             //throw new NotImplementedException();
+            ReadMessage();
         }
 
 

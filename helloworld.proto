@@ -14,7 +14,7 @@
 
 syntax = "proto3";
 import "google/protobuf/timestamp.proto";
-option csharp_namespace = "ServerCore";
+option csharp_namespace = "IOT";
 package ServerForecast;
 
 // The greeting service definition.
@@ -23,6 +23,7 @@ service ServerForecast {
 	rpc SayHello (ConfigRequest) returns (ConfigReply) {}
 	rpc RXStream (RXRequest) returns (stream RXReply) {}
 	rpc TXStream (TXRequest) returns (TXReply) {}
+	rpc RXCANStream (RXRequest) returns (stream CANmsg) {}
 }
 
 
@@ -68,4 +69,15 @@ message ConfigRequest
 
 message ConfigReply {
 	string message = 1;
+}
+
+
+message CANmsg
+{
+	uint32 CANID=1;
+	bool IsExtended=2;
+	bool IsRemote=3;
+	uint32 DataLength=4;
+	repeated bytes data = 5;
+
 }
