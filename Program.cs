@@ -28,8 +28,6 @@ namespace IOT
         private static async System.Threading.Tasks.Task<bool> InitCanAsync()
         {
             CANHandler = new MCP2515();
-            //Hardware.MCP2515_Invoke = Interrupt0;
-
             if (await CANHandler.InitCANAsync(MCP2515.enBaudRate.CAN_1000KBPS) == false)
             {
                 Console.WriteLine("InitCanFail");
