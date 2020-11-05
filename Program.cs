@@ -8,26 +8,36 @@ namespace IOT
     class Program
     {
 
-        private static void TurnOff(object sender, PinValueChangedEventArgs pinValueChangedEventArgs)
-        {
-            Console.WriteLine("test Interuupt");
-        }
+        private static MCP2515 CANHandler;
 
-        static void Main(string[] args)
+        static async System.Threading.Tasks.Task Main(string[] args)
         {
             Hardware.HardwareInit();
-            Hardware.HoltConfigure();
-
+            await Holt.HoltConfigure();
+            await InitCanAsync();
             Console.WriteLine("Hello World!");
             // turn LED on and off
             while (true)
-            {
-                
+            {      
                 Thread.Sleep(1000);
-               
             }
 
 
+        }
+
+        private static async System.Threading.Tasks.Task<bool> InitCanAsync()
+        {
+            CANHandler = new MCP2515();
+            //Hardware.MCP2515_Invoke = Interrupt0;
+
+            if (await CANHandler.InitCANAsync(MCP2515.enBaudRate.CAN_1000KBPS) == false)
+            {
+                Console.WriteLine("InitCanFail");
+                return false;
+            }
+            // Set to normal operation mode.
+            await CANHandler.SetCANNormalModeAsync();
+            return true;
         }
     }
 }

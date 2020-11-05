@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Iot.Device.Bindings" Version="1.0.0" />
+    <PackageReference Include="Nito.AsyncEx" Version="5.1.0" />
     <PackageReference Include="System.Device.Gpio" Version="1.0.0" />
   </ItemGroup>
 
