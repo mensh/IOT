@@ -28,7 +28,7 @@ namespace IOT
             Console.WriteLine("Hello World!");
             Task.Run(async () => await Holt.HoltConfigure().ContinueWith(async x => await InitCanAsync())).ContinueWith(_ =>
                {
-                   Task.Run(async () => await TaskTXCAN());
+                 //  Task.Run(async () => await TaskTXCAN());
                    Task.Run(async () => await TransmitHolt());
                    Task.Run(async () => await ReadHolt());
                });
@@ -155,17 +155,7 @@ namespace IOT
             // Check if a message was received.
             if (await CANHandler.ReceiveAsync(rxMessage))
             {
-                if (rxMessage.IsExtended)
-                {
-                    Console.WriteLine(rxMessage.CANID + ":" + BitConverter.ToString(rxMessage.data));
-                    Console.WriteLine("Total Recive Message = " + counterRecive);
-                }
-                else
-                {
-                    Console.WriteLine(rxMessage.CANID + ":" + BitConverter.ToString(rxMessage.data));
-                    Console.WriteLine("Total Recive Message = " + counterRecive);
-                   
-                }
+                _CANRXQueue?.AddMailQueue(rxMessage);
                 counterRecive++;
             }
             
