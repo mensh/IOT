@@ -18,6 +18,7 @@ namespace IOT
         private static MCP2515 CANHandler;
         private ArincRXQueue _arincRXQueue;
         private ArincTXQueue _arincTXQueue;
+        private  SSD1306Core ssd ;
         private CANTXQueue _CANTXQueue;
         private CANRXQueue _CANRXQueue;
         private int counterRecive = 0;
@@ -40,6 +41,9 @@ namespace IOT
             services.AddSingleton<CANTXQueue>();
             services.AddSingleton<CANRXQueue>();
 
+             ssd = new SSD1306Core();
+             ssd.Init();
+
         }
         private async Task ReadHolt()
         {
@@ -60,6 +64,9 @@ namespace IOT
                         Hardware.RedLed(state ? PinValue.High : PinValue.Low);
                         sw = System.Diagnostics.Stopwatch.StartNew();
                         state = !state;
+                      
+                        ssd.WriteLineDisplayBuf("MESSAGE Arinc RX",0,1);
+                        ssd.DisplayUpdate();
                     }
                     var message = await Holt.ReadMessageAsync(false);
                     var time = Timestamp.FromDateTime(DateTime.UtcNow);
@@ -72,6 +79,9 @@ namespace IOT
                         if (flag_off)
                         {
                             Hardware.RedLed(PinValue.Low);
+                        
+                            ssd.WriteLineDisplayBuf("NO Arinc RX", 0, 1);
+                             ssd.DisplayUpdate();
                             flag_off = false;
                         }
 

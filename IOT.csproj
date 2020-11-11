@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Iot.Device.Bindings" Version="1.0.0" />
     <PackageReference Include="Nito.AsyncEx" Version="5.1.0" />
+    <PackageReference Include="SixLabors.Fonts" Version="1.0.0-beta0013" />
     <PackageReference Include="System.Device.Gpio" Version="1.0.0" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.33.1" />
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
