@@ -31,12 +31,12 @@ namespace IOT
             Hardware.HardwareInit();
 
             Console.WriteLine("Hello World!");
-            Task.Run(async () => await Holt.HoltConfigure().ContinueWith(async x => await InitCanAsync())).ContinueWith(_ =>
+            Task.Run(async () => await Holt.HoltConfigure()./*ContinueWith(async x => await InitCanAsync())).*/ContinueWith(_ =>
                {
                  //  Task.Run(async () => await TaskTXCAN());
                    Task.Run(async () => await TransmitHolt());
                    Task.Run(async () => await ReadHolt());
-               });
+               }));
             Hardware.ReadMessage = TaskRXCAN;
 
             services.AddGrpc();
