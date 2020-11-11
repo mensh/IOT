@@ -88,7 +88,7 @@ namespace IOT
             var swoff = System.Diagnostics.Stopwatch.StartNew();
             bool state = true;
             bool flag_off = true;
-
+            bool flag_display = true;
             while (true)
             {
                 var status = await Holt.ReadStatus();
@@ -101,9 +101,12 @@ namespace IOT
                         Hardware.RedLed(state ? PinValue.High : PinValue.Low);
                         sw = System.Diagnostics.Stopwatch.StartNew();
                         state = !state;
-                      
-                        ssd.WriteLineDisplayBuf("MESSAGE Arinc RX",0,1);
-                        ssd.DisplayUpdate();
+                        if (flag_display)
+                        {
+                            ssd.WriteLineDisplayBuf("MESSAGE Arinc RX",0,1);
+                            ssd.DisplayUpdate();
+                            flag_display = false;
+                        }
                     }
                     var message = await Holt.ReadMessageAsync(false);
                     var time = Timestamp.FromDateTime(DateTime.UtcNow);
@@ -116,14 +119,14 @@ namespace IOT
                         if (flag_off)
                         {
                             Hardware.RedLed(PinValue.Low);
-                        
+                            flag_display = true;
                             ssd.WriteLineDisplayBuf("NO Arinc RX", 0, 1);
                              ssd.DisplayUpdate();
                             flag_off = false;
                         }
 
                     }
-                    udelay(40);
+                   // udelay(40);
                 }
             }
         }
