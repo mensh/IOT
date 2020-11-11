@@ -73,7 +73,7 @@ namespace IOT
             /* Initialize the display */
             try
             {  
-
+                DisplaySendCommand(CMD_DISPLAY_OFF);
                 DisplaySendCommand(CMD_CHARGEPUMP_ON);  /* Turn on the internal charge pump to provide power to the screen          */
                 DisplaySendCommand(CMD_MEMADDRMODE);    /* Set the addressing mode to "horizontal"                                  */
                 DisplaySendCommand(CMD_SEGREMAP);       /* Flip the display horizontally, so it's easier to read on the breadboard  */

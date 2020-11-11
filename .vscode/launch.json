@@ -20,7 +20,7 @@
                 "pipeArgs": [
                     "-pw",
                     "menshikov",
-                    "root@orangepi4"
+                    "root@192.168.1.102"
                 ],
                 "debuggerPath": "/root/vsdbg/vsdbg"
             }

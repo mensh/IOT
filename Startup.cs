@@ -10,6 +10,10 @@ using System.Collections.Generic;
 using System.Device.Gpio;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Threading;
 
 namespace IOT
 {
@@ -40,11 +44,44 @@ namespace IOT
             services.AddSingleton<ArincTXQueue>();
             services.AddSingleton<CANTXQueue>();
             services.AddSingleton<CANRXQueue>();
-
-             ssd = new SSD1306Core();
-             ssd.Init();
-
+            SSD13__ sSD = new SSD13__();
+            ssd = new SSD1306Core();
+            ssd.Init();
+            Thread.Sleep(1000);
+            ssd.WriteLineDisplayBuf(DisplayIpAddress(),0,0);
+            ssd.DisplayUpdate();
         }
+
+
+        string DisplayIpAddress()
+        {
+            string ipAddress = GetIpAddress();
+
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                return $"IP:{ipAddress}";
+            }
+            else
+            {
+                return DisplayWifiIpAddress();
+            }
+        }
+
+
+         string DisplayWifiIpAddress()
+        {
+            string ipAddress = GetIpAddressWlan();
+
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                return $"WF:{ipAddress}";
+            }
+            else
+            {
+                return $"Error: IP";
+            }
+        }
+
         private async Task ReadHolt()
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -193,6 +230,82 @@ namespace IOT
             // Set to normal operation mode.
             await CANHandler.SetCANNormalModeAsync();
             return true;
+        }
+        string GetIpAddress()
+        {
+            // Get a list of all network interfaces (usually one per network card, dialup, and VPN connection).
+            NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+            foreach (NetworkInterface network in networkInterfaces)
+            {
+                // Read the IP configuration for each network
+                IPInterfaceProperties properties = network.GetIPProperties();
+
+                if (network.NetworkInterfaceType == NetworkInterfaceType.Ethernet &&
+                    network.OperationalStatus == OperationalStatus.Up &&
+                    !network.Description.ToLower().Contains("virtual") &&
+                    !network.Description.ToLower().Contains("pseudo"))
+                {
+                    // Each network interface may have multiple IP addresses.
+                    foreach (IPAddressInformation address in properties.UnicastAddresses)
+                    {
+                        // We're only interested in IPv4 addresses for now.
+                      //  if (address.Address.AddressFamily != AddressFamily.InterNetwork)
+                      //  {
+                      //      continue;
+                      //  }
+
+                        // Ignore loopback addresses (e.g., 127.0.0.1).
+                        if (IPAddress.IsLoopback(address.Address))
+                        {
+                            continue;
+                        }
+
+                        return address.Address.ToString();
+                    }
+                }
+            }
+
+            return null;
+        }
+
+
+         string GetIpAddressWlan()
+        {
+            // Get a list of all network interfaces (usually one per network card, dialup, and VPN connection).
+            NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+            foreach (NetworkInterface network in networkInterfaces)
+            {
+                // Read the IP configuration for each network
+                IPInterfaceProperties properties = network.GetIPProperties();
+
+                if (network.NetworkInterfaceType == NetworkInterfaceType.Ethernet &&
+                    network.OperationalStatus == OperationalStatus.Up &&
+                    !network.Description.ToLower().Contains("virtual") &&
+                    !network.Description.ToLower().Contains("pseudo") && network.Description.ToLower().Contains("wlan0"))
+                {
+                    // Each network interface may have multiple IP addresses.
+                    foreach (IPAddressInformation address in properties.UnicastAddresses)
+                    {
+                        // We're only interested in IPv4 addresses for now.
+                      //  if (address.Address.AddressFamily != AddressFamily.InterNetwork)
+                      //  {
+                      //      continue;
+                      //  }
+
+                        // Ignore loopback addresses (e.g., 127.0.0.1).
+                        if (IPAddress.IsLoopback(address.Address))
+                        {
+                            continue;
+                        }
+
+                        return address.Address.ToString();
+                    }
+                }
+            }
+
+            return null;
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
