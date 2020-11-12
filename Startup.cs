@@ -26,16 +26,23 @@ namespace IOT
         private CANTXQueue _CANTXQueue;
         private CANRXQueue _CANRXQueue;
         private int counterRecive = 0;
+        private SSD13__ sSD;
+
+        private string ArincStatus=string.Empty;
+        private string  IP;
+        private string  Temperature;
+
         public void ConfigureServices(IServiceCollection services)
         {
             Hardware.HardwareInit();
 
             Console.WriteLine("Hello World!");
-            Task.Run(async () => await Holt.HoltConfigure()./*ContinueWith(async x => await InitCanAsync())).*/ContinueWith(_ =>
+            Task.Run(async () => await Holt.HoltConfigure().ContinueWith(async x => await InitCanAsync()).ContinueWith(_ =>
                {
                  //  Task.Run(async () => await TaskTXCAN());
                    Task.Run(async () => await TransmitHolt());
                    Task.Run(async () => await ReadHolt());
+                
                }));
             Hardware.ReadMessage = TaskRXCAN;
 
@@ -44,12 +51,11 @@ namespace IOT
             services.AddSingleton<ArincTXQueue>();
             services.AddSingleton<CANTXQueue>();
             services.AddSingleton<CANRXQueue>();
-            SSD13__ sSD = new SSD13__();
+            sSD = new SSD13__();
             ssd = new SSD1306Core();
             ssd.Init();
-            Thread.Sleep(1000);
-            ssd.WriteLineDisplayBuf(DisplayIpAddress(),0,0);
-            ssd.DisplayUpdate();
+            Task.Run(async () => await Display());
+            CpuTemperatureReader cpu = new CpuTemperatureReader();
         }
 
 
@@ -82,6 +88,9 @@ namespace IOT
             }
         }
 
+     
+
+
         private async Task ReadHolt()
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -103,8 +112,7 @@ namespace IOT
                         state = !state;
                         if (flag_display)
                         {
-                            ssd.WriteLineDisplayBuf("MESSAGE Arinc RX",0,1);
-                            ssd.DisplayUpdate();
+                            ArincStatus = "MESSAGE Arinc RX";
                             flag_display = false;
                         }
                     }
@@ -120,8 +128,7 @@ namespace IOT
                         {
                             Hardware.RedLed(PinValue.Low);
                             flag_display = true;
-                            ssd.WriteLineDisplayBuf("NO Arinc RX", 0, 1);
-                             ssd.DisplayUpdate();
+                            ArincStatus = "NO Arinc RX";
                             flag_off = false;
                         }
 
@@ -130,6 +137,44 @@ namespace IOT
                 }
             }
         }
+
+
+        private async Task Display()
+        {
+            int slide = 0;
+            while (true)
+            {
+                switch (slide)
+                {
+                    case(0):
+                    {
+                   
+                        ssd.ClearDisplayBuf();
+                        ssd.DisplayUpdate();
+                        ssd.WriteLineDisplayBuf(DisplayIpAddress(),0,0);
+                        ssd.WriteLineDisplayBuf(ArincStatus, 0, 1);
+                        ssd.DisplayUpdate();
+                        await Task.Delay(2000);
+                        slide = 1;
+                        break;
+                    }
+                    case(1):
+                    {
+                        ssd.ClearDisplayBuf();
+                        ssd.DisplayUpdate();
+                        ssd.WriteLineDisplayBuf("TempCore "+ CpuTemperatureReader.Reader().ToString("0.#") ,0,0);
+                        ssd.WriteLineDisplayBuf(ArincStatus, 0, 1);
+                        ssd.DisplayUpdate();
+                        await Task.Delay(2000);
+                        slide = 0;
+                        break;
+                    }
+                }
+
+
+            }   
+        }
+
 
         private async Task TransmitHolt()
         {

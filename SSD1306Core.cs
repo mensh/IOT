@@ -79,8 +79,6 @@ namespace IOT
                 DisplaySendCommand(CMD_SEGREMAP);       /* Flip the display horizontally, so it's easier to read on the breadboard  */
                 DisplaySendCommand(CMD_COMSCANDIR);     /* Flip the display vertically, so it's easier to read on the breadboard    */
                 DisplaySendCommand(CMD_DISPLAY_ON);     /* Turn the display on                                                      */
-                ClearDisplayBuf();
-                DisplayUpdate();
             }
             catch (Exception ex)
             {
