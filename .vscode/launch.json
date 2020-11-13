@@ -14,6 +14,7 @@
             "cwd": "/root/IOT/",
             "stopAtEntry": false,
             "console": "internalConsole",
+            "requireExactSource":false,
             "pipeTransport": {
                 "pipeCwd": "${workspaceFolder}",
                 "pipeProgram": "C:\\PLINK.EXE",

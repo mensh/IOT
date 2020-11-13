@@ -15,8 +15,8 @@ namespace IOT
         public const int CS_CAN = 150;
         public const int Int_CAN = 149;
         public const int RED_LED = 33;
-        public const int BtrSpi = 3000000;
-
+        public const int BtrSpi = 10000000;
+        static Mutex mutexObj = new Mutex();
         public static SpiDevice SPI;
         public static GpioController controller;
         readonly static AsyncLock mutex = new AsyncLock();
@@ -61,8 +61,8 @@ namespace IOT
 
         public static async Task SPIWork(byte[] datawrite, byte[] dataread, int CS_PIN)
         {
-            using (await mutex.LockAsync())
-            {
+                mutexObj.WaitOne();
+       
                 if (datawrite.Length == 1 && (dataread == null || dataread.Length == 0))
                 {
                     controller.Write(CS_PIN, PinValue.Low);
@@ -89,8 +89,9 @@ namespace IOT
                     SPI.Read(dataread);
                     controller.Write(CS_PIN, PinValue.High);
                 }
-            }
-
+                mutexObj.ReleaseMutex();
+            
+           
         }
     }
 }

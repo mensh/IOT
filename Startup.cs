@@ -22,15 +22,15 @@ namespace IOT
         private static MCP2515 CANHandler;
         private ArincRXQueue _arincRXQueue;
         private ArincTXQueue _arincTXQueue;
-        private  SSD1306Core ssd ;
+        private SSD1306Core ssd;
         private CANTXQueue _CANTXQueue;
         private CANRXQueue _CANRXQueue;
         private int counterRecive = 0;
         private SSD13__ sSD;
 
-        private string ArincStatus=string.Empty;
-        private string  IP;
-        private string  Temperature;
+        private string ArincStatus = string.Empty;
+        private string IP;
+        private string Temperature;
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -39,10 +39,10 @@ namespace IOT
             Console.WriteLine("Hello World!");
             Task.Run(async () => await Holt.HoltConfigure().ContinueWith(async x => await InitCanAsync()).ContinueWith(_ =>
                {
-                 //  Task.Run(async () => await TaskTXCAN());
+                   //  Task.Run(async () => await TaskTXCAN());
                    Task.Run(async () => await TransmitHolt());
                    Task.Run(async () => await ReadHolt());
-                
+
                }));
             Hardware.ReadMessage = TaskRXCAN;
 
@@ -74,7 +74,7 @@ namespace IOT
         }
 
 
-         string DisplayWifiIpAddress()
+        string DisplayWifiIpAddress()
         {
             string ipAddress = GetIpAddressWlan();
 
@@ -88,7 +88,7 @@ namespace IOT
             }
         }
 
-     
+
 
 
         private async Task ReadHolt()
@@ -116,9 +116,14 @@ namespace IOT
                             flag_display = false;
                         }
                     }
+
+
                     var message = await Holt.ReadMessageAsync(false);
+
                     var time = Timestamp.FromDateTime(DateTime.UtcNow);
                     _arincRXQueue?.AddMailQueue(new ArincRX() { data = message, DateTime = time });
+                    status = await Holt.ReadStatus();
+
                 }
                 else
                 {
@@ -133,7 +138,7 @@ namespace IOT
                         }
 
                     }
-                   // udelay(40);
+                    // udelay(40);
                 }
             }
         }
@@ -146,33 +151,33 @@ namespace IOT
             {
                 switch (slide)
                 {
-                    case(0):
-                    {
-                   
-                        ssd.ClearDisplayBuf();
-                        ssd.DisplayUpdate();
-                        ssd.WriteLineDisplayBuf(DisplayIpAddress(),0,0);
-                        ssd.WriteLineDisplayBuf(ArincStatus, 0, 1);
-                        ssd.DisplayUpdate();
-                        await Task.Delay(2000);
-                        slide = 1;
-                        break;
-                    }
-                    case(1):
-                    {
-                        ssd.ClearDisplayBuf();
-                        ssd.DisplayUpdate();
-                        ssd.WriteLineDisplayBuf("TempCore "+ CpuTemperatureReader.Reader().ToString("0.#") ,0,0);
-                        ssd.WriteLineDisplayBuf(ArincStatus, 0, 1);
-                        ssd.DisplayUpdate();
-                        await Task.Delay(2000);
-                        slide = 0;
-                        break;
-                    }
+                    case (0):
+                        {
+
+                            ssd.ClearDisplayBuf();
+                            ssd.DisplayUpdate();
+                            ssd.WriteLineDisplayBuf(DisplayIpAddress(), 0, 0);
+                            ssd.WriteLineDisplayBuf(ArincStatus, 0, 1);
+                            ssd.DisplayUpdate();
+                            await Task.Delay(2000);
+                            slide = 1;
+                            break;
+                        }
+                    case (1):
+                        {
+                            ssd.ClearDisplayBuf();
+                            ssd.DisplayUpdate();
+                            ssd.WriteLineDisplayBuf("TempCore " + CpuTemperatureReader.Reader().ToString("0.#"), 0, 0);
+                            ssd.WriteLineDisplayBuf(ArincStatus, 0, 1);
+                            ssd.DisplayUpdate();
+                            await Task.Delay(2000);
+                            slide = 0;
+                            break;
+                        }
                 }
 
 
-            }   
+            }
         }
 
 
@@ -253,7 +258,7 @@ namespace IOT
                 _CANRXQueue?.AddMailQueue(rxMessage);
                 counterRecive++;
             }
-            
+
         }
 
 
@@ -298,10 +303,10 @@ namespace IOT
                     foreach (IPAddressInformation address in properties.UnicastAddresses)
                     {
                         // We're only interested in IPv4 addresses for now.
-                      //  if (address.Address.AddressFamily != AddressFamily.InterNetwork)
-                      //  {
-                      //      continue;
-                      //  }
+                        //  if (address.Address.AddressFamily != AddressFamily.InterNetwork)
+                        //  {
+                        //      continue;
+                        //  }
 
                         // Ignore loopback addresses (e.g., 127.0.0.1).
                         if (IPAddress.IsLoopback(address.Address))
@@ -318,7 +323,7 @@ namespace IOT
         }
 
 
-         string GetIpAddressWlan()
+        string GetIpAddressWlan()
         {
             // Get a list of all network interfaces (usually one per network card, dialup, and VPN connection).
             NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
@@ -337,10 +342,10 @@ namespace IOT
                     foreach (IPAddressInformation address in properties.UnicastAddresses)
                     {
                         // We're only interested in IPv4 addresses for now.
-                      //  if (address.Address.AddressFamily != AddressFamily.InterNetwork)
-                      //  {
-                      //      continue;
-                      //  }
+                        //  if (address.Address.AddressFamily != AddressFamily.InterNetwork)
+                        //  {
+                        //      continue;
+                        //  }
 
                         // Ignore loopback addresses (e.g., 127.0.0.1).
                         if (IPAddress.IsLoopback(address.Address))

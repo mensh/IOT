@@ -78,8 +78,7 @@ namespace IOT.Services
 
             while (!context.CancellationToken.IsCancellationRequested)
             {
-                if (queue.Count > 1)
-                {
+   
                     if (queue.TryDequeue(out var messageRx))
                     {
 
@@ -90,11 +89,7 @@ namespace IOT.Services
                             Time = messageRx.DateTime
                         });
                     }
-                }
-                else
-                {
-                    await Task.Yield();
-                }
+        
 
             }
 
